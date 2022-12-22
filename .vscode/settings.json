@@ -1,0 +1,4 @@
+{
+    //"phpSniffer.standard": "./phpcs.xml",
+    "intelephense.environment.includePaths": ["../../.."]
+  }
