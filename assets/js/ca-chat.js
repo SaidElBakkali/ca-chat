@@ -4,38 +4,53 @@ function chatroom_check_updates() {
 	data.append("action", "check_updates");
 	data.append("post_id", caChat.postId);
 	data.append("last_update_id", last_update_id);
+	data.append("nonce", caChat.nonce);
 	fetch(caChat.ajaxUrl, {
 	  method: "POST",
 	  body: data,
 	})
 	  .then((response) => {
-		return response.text();
+		return response.json();
 	  })
-	  .then((response) => {
-		chats = JSON.parse(response);
+	  .then((responseJson) => {
 
-		//console.table(chats);
-		if (chats !== null) {
-		  for (i = 0; i < chats.length; i++) {
-			if (
-			  document.querySelector(
-				"div.chat-container div.chat-message-" + chats[i].id
-			  )
-			) {
-			  continue;
+
+		if (responseJson !== null) {
+			for( const chat of responseJson ) {
+				console.log( chat );
+
+				chatroom_get_chat_message_html(chat);
 			}
-			document.querySelector("div.chat-container").innerHTML =
-			  document.querySelector("div.chat-container").innerHTML +
-			  chatroom_strip_slashes(chats[i].html);
-			last_update_id = chats[i].id;
-			document.querySelector("div.chat-container").scrollTop =
-			  document.querySelector("div.chat-container").scrollHeight -
-			  document.querySelector("div.chat-container").clientHeight;
-		  }
 		}
 	  });
+  }
 
-	setTimeout("chatroom_check_updates()", 1000);
+  // html template for chat message
+  function chatroom_get_chat_message_html(chat) {
+	let message =  (
+	  '<div class="chat-message chat-message-' +
+	  chat.id +
+	  '">' + chat.author_avatar + '<div class="message-container">' +
+	  '<strong class="username">' +
+	  chat.author_name +
+	  '</strong><span class="chat-message-date">' +
+	  chat.message_time +
+	  '</span><div class="message-content">' +
+	  chat.contents +
+	  "</div></div></div>"
+	);
+
+	let chat_content = document.querySelector("#chat_content");
+
+	let message_container = document.querySelector('.chat-message-' + chat.id);
+
+	if( null === message_container ) {
+		chat_content.innerHTML += message;
+	}
+
+	// Scroll to the bottom of the chat.
+	chat_content.scrollTop = chat_content.scrollHeight;
+
   }
 
   function chatroom_strip_slashes(str) {
@@ -96,16 +111,19 @@ function chatroom_check_updates() {
 	// Add the message to send
 	data.append("message", message);
 
+	// Add the nonce
+	data.append("nonce", caChat.nonce);
+
 	// Send the message
 	fetch(caChat.ajaxUrl, {
 	  method: "POST",
 	  body: data,
 	})
 	  .then((response) => {
-		// Convert the response to text
-		return response.text();
+		return response.json();
 	  })
-	  .then((response) => {
-		// Do nothing with the response
+	  .then((responseJson) => {
 	  });
   }
+
+setInterval(chatroom_check_updates, 5000);

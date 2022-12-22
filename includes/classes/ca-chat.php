@@ -56,9 +56,10 @@ class CA_Chat {
 				'chat-room',
 				'caChat',
 				array(
-					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-					'nonce'   => wp_create_nonce( 'ca_chat_nonce' ),
-					'postId'  => $post->ID,
+					'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
+					'nonce'          => wp_create_nonce( 'ca_chat_nonce' ),
+					'postId'         => $post->ID,
+					'is_post_author' => current_user_can( 'edit_post', $post->ID ),
 				)
 			);
 		}
@@ -75,7 +76,7 @@ class CA_Chat {
 			return;
 		}
 		$upload_dir   = wp_upload_dir();
-		$log_filename = $upload_dir['basedir'] . '/chatter/' . $post_id . '-' . date( 'm-d-y', time() ) . '.json';
+		$log_filename = $upload_dir['basedir'] . '/chatter/' . $post_id . '-' . $this->get_current_date() . '.json';
 
 		if ( file_exists( $log_filename ) ) {
 			return;
@@ -94,7 +95,7 @@ class CA_Chat {
 	/**
 	 * It reads the contents of the log file and returns it
 	 *
-	 * @param log_filename The full path to the log file.
+	 * @param string $log_filename The full path to the log file.
 	 *
 	 * @return string The contents of the log file.
 	 */
@@ -110,9 +111,16 @@ class CA_Chat {
 		return $contents;
 	}
 
+	/**
+	 * It returns the path to the log file for a given post
+	 *
+	 * @param int $post_id The ID of the post that the comment is being made on.
+	 *
+	 * @return string The log file name.
+	 */
 	public function get_log_filename( $post_id ) {
 		$upload_dir   = wp_upload_dir();
-		$log_filename = $upload_dir['basedir'] . '/chatter/' . $post_id . '-' . date( 'm-d-y', time() ) . '.json';
+		$log_filename = $upload_dir['basedir'] . '/chatter/' . $post_id . '-' . $this->get_current_date() . '.json';
 
 		return $log_filename;
 	}
@@ -148,10 +156,16 @@ class CA_Chat {
 	 */
 	public function ajax_check_updates_handler() {
 
+		// Check the nonce.
+		if ( ! isset( $_POST['nonce'] ) || ! check_ajax_referer( 'ca_chat_nonce', 'nonce' ) ) {
+			die;
+		}
+
+		$post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
+
 		$post_id      = filter_input( INPUT_POST, 'post_id', FILTER_SANITIZE_NUMBER_INT );
 		$post         = get_post( $post_id );
 		$user_id      = absint( get_current_user_id() );
-		$upload_dir   = wp_upload_dir();
 		$log_filename = $this->get_log_filename( $post_id );
 		$contents     = $this->parse_messages_log_file( $log_filename );
 		$messages     = json_decode( $contents, true );
@@ -194,8 +208,18 @@ class CA_Chat {
 	 * Clears out cache of any messages older than 10 seconds.
 	 */
 	public function ajax_send_message_handler() {
-		$this->save_message( sanitize_text_field( $_POST['post_id'] ), get_current_user_id(), sanitize_text_field( $_POST['message'] ) );
-		die;
+
+		// Check the nonce.
+		if ( ! isset( $_POST['nonce'] ) || ! check_ajax_referer( 'ca_chat_nonce', 'nonce' ) ) {
+			die;
+		}
+
+		$post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
+		$message = isset( $_POST['message'] ) ? sanitize_text_field( wp_unslash( $_POST['message'] ) ) : '';
+
+		if ( $post_id && $message ) {
+			$this->save_message( $post_id, get_current_user_id(), $message );
+		}
 	}
 
 	/**
@@ -245,19 +269,14 @@ class CA_Chat {
 			'sender'         => $user_id,
 			'lesson_author'  => absint( $post->post_author ),
 			'contents'       => $content,
-			'html'           => sprintf(
-				'<div class="chat-message chat-message-%d">%s<div class="message-container"><strong class="username">%s</strong><span class="message-content">%s</span><span>%s</span></div></div>',
-				$new_message_id,
-				crypto_academy_get_user_avatar_html( $user->ID, 40 ),
-				$user->display_name,
-				$content,
-				time()
-			),
+			'message_time'   => $this->get_current_time(),
+			'author_avatar'  => crypto_academy_get_user_avatar_html( $user->ID, 40 ),
+			'author_name'    => $user->display_name,
 		);
 		// $this->write_log_file( $log_filename, wp_json_encode( $messages ) );
 
 		// Save the message in the daily log.
-		$log_filename = $this->get_log_filename( $post_id, gmdate( 'm-d-y', time() ) );
+		$log_filename = $this->get_log_filename( $post_id, $this->get_current_date() );
 		$contents     = $this->parse_messages_log_file( $log_filename );
 		$messages     = json_decode( $contents );
 
@@ -268,17 +287,16 @@ class CA_Chat {
 			'sender'         => $user_id,
 			'lesson_author'  => absint( $post->post_author ),
 			'contents'       => $content,
-			'html'           => sprintf(
-				'<div class="chat-message chat-message-%d">%s<div class="message-container"><strong class="username">%s</strong><span class="message-time">%s</span><div class="message-content">%s</div></div></div>',
-				$new_message_id,
-				crypto_academy_get_user_avatar_html( $user->ID, 40 ),
-				$user->display_name,
-				$this->get_current_time(),
-				$content
-			),
+			'message_time'   => $this->get_current_time(),
+			'author_avatar'  => crypto_academy_get_user_avatar_html( $user->ID, 40 ),
+			'author_name'    => $user->display_name,
 		);
 
 		$this->write_log_file( $log_filename, wp_json_encode( $messages ) );
+
+		$messages = array_values( $messages );
+		echo wp_json_encode( $messages );
+		die;
 	}
 
 	// Get current time.
@@ -290,6 +308,17 @@ class CA_Chat {
 	public function get_current_time() {
 		$time = gmdate( 'H:i:s', time() );
 		return $time;
+	}
+
+	// Get current date.
+	/**
+	 * It gets the current date
+	 *
+	 * @return string $date The current date.
+	 */
+	public function get_current_date() {
+		$date = gmdate( 'm-d-y', time() );
+		return $date;
 	}
 
 	/**
