@@ -1,13 +1,17 @@
 <?php
-/*
-Plugin Name: CA Chat
-Plugin URI: https://saidelbakkali.com/
-Description: Chat for Crypto Master Platform
-Author: Said El Bakkali
-Version: 0.0.3
-Author URI: https://saidelbakkali.com/
-License: GPLv2 or later
-*/
+/**
+ * Plugin Name: CA Chat
+ * Plugin URI: https://saidelbakkali.com/
+ * Description: Chat for Crypto Master Platform
+ * Author: Said El Bakkali
+ * Version: 0.0.3
+ * Author URI: https://saidelbakkali.com/
+ * License: GPLv2 or later
+ * Text Domain: ca-chat
+ * Domain Path: /languages
+ *
+ * @package CA Chat
+ */
 
 define( 'CA_CHAT_VERSION', '0.0.3' );
 define( 'CA_CHAT__MINIMUM_WP_VERSION', '5.5' );
