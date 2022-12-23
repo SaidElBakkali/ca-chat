@@ -198,7 +198,7 @@ class CA_Chat {
 		}
 
 		$post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
-		$message = isset( $_POST['message'] ) ? sanitize_text_field( wp_unslash( $_POST['message'] ) ) : '';
+		$message = isset( $_POST['chat_message'] ) ? sanitize_text_field( wp_unslash( $_POST['chat_message'] ) ) : '';
 
 		// It's getting the post object.
 		$post = get_post( $post_id );
@@ -236,6 +236,7 @@ class CA_Chat {
 			'message_time'   => $this->get_current_time(),
 			'author_avatar'  => crypto_academy_get_user_avatar_html( $post->post_author, 40 ),
 			'author_name'    => $user->display_name,
+			'is_private'     => true,
 		);
 
 		wp_send_json_error( $messages );
