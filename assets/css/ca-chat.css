@@ -3,6 +3,7 @@
     border-radius: 10px;
     position: relative;
     overflow: hidden;
+    scroll-behavior: smooth;
   }
   .chat-wrapper .chat-title {
     background-color: #6A2AB0;
@@ -19,10 +20,20 @@
     height: 400px;
     overflow-y: scroll;
     overflow-x: hidden;
-    /* width */
-    /* Track */
-    /* Handle */
-    /* Handle on hover */
+  }
+  .chat-wrapper .chat .chat-content .chat-message-date {
+    font-size: 12px;
+    color: #7a7a7a;
+    text-align: center;
+    margin: 10px 0;
+  }
+
+  .message-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 5px;
   }
   .chat-wrapper .chat .chat-content::-webkit-scrollbar {
     width: 3px;
@@ -42,6 +53,20 @@
     border-radius: 10px;
     display: flex;
     gap: 10px;
+    max-width: 100%;
+  }
+
+  .chat-wrapper .chat .chat-message .message-container {
+    width: 85%
+  }
+
+  .message-content {
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  .chat-wrapper .chat .chat-message .author-avatar {
+    width: 15%
   }
   .chat-wrapper .chat .chat-message .avatar {
     width: 40px;
@@ -78,14 +103,15 @@
     margin-top: 13px;
     padding-left: 50px;
     padding-right: 50px;
+    overflow: hidden;
   }
-  .chat-wrapper .chat .chat-form textarea::placeholder {
+  .chat-wrapper .chat .chat-form .chat-text-entry::placeholder {
     color: #7a7a7a;
     font-size: 14px;
     font-weight: 400;
     text-align: center;
   }
-  .chat-wrapper .chat .chat-form textarea:focus {
+  .chat-wrapper .chat .chat-form .chat-text-entry:focus {
     outline: none;
   }
   .chat-wrapper .hide-chat {

@@ -15,8 +15,6 @@ function chatroom_check_updates() {
     .then((responseJson) => {
       if (responseJson !== null) {
         for (const chat of responseJson) {
-          console.log(chat);
-
           chatroom_get_chat_message_html(chat);
         }
       }
@@ -25,19 +23,21 @@ function chatroom_check_updates() {
 
 // html template for chat message
 function chatroom_get_chat_message_html(chat) {
-  let message =
-    '<div class="chat-message chat-message-' +
-    chat.id +
-    '">' +
-    chat.author_avatar +
-    '<div class="message-container">' +
-    '<strong class="username">' +
-    chat.author_name +
-    '</strong><span class="chat-message-date">' +
-    chat.message_time +
-    '</span><div class="message-content">' +
-    chatroom_make_links(chat.contents) +
-    "</div></div></div>";
+
+    let message = `
+    <div class="chat-message chat-message-${chat.id}">
+      <span class="author-avatar">${chat.author_avatar}</span>
+      <div class="message-container">
+        <div class="message-header">
+          <strong class="username">${chat.author_name}</strong>
+          <span class="chat-message-date">${chat.message_time}</span>
+        </div>
+        <div class="message-content">
+          ${chatroom_make_links(chat.contents)}
+        </div>
+      </div>
+    </div>`;
+
 
   let chat_content = document.querySelector("#chat_content");
 
@@ -45,10 +45,11 @@ function chatroom_get_chat_message_html(chat) {
 
   if (null === message_container) {
     chat_content.innerHTML += message;
-  }
 
-  // Scroll to the bottom of the chat.
-  chat_content.scrollTop = chat_content.scrollHeight;
+    //message_container.append(message);
+
+    chat_content.scrollTop = chat_content.scrollHeight;
+  }
 }
 
 // Convert url to link

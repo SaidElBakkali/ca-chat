@@ -306,7 +306,7 @@ class CA_Chat {
 	 * @return string $time The current time.
 	 */
 	public function get_current_time() {
-		$time = gmdate( 'H:i:s', time() );
+		$time = gmdate( 'H:i', time() );
 		return $time;
 	}
 
