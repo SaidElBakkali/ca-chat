@@ -9,9 +9,7 @@ function chatroom_check_updates() {
     method: "POST",
     body: data,
   })
-    .then((response) => {
-      return response.json();
-    })
+    .then(response => response.json())
     .then((responseJson) => {
       if (responseJson !== null) {
         for (const chat of responseJson) {
@@ -54,10 +52,12 @@ function chatroom_get_chat_message_html(chat) {
 
 // Convert url to link
 function chatroom_make_links(str) {
-  return str.replace(
-    /(https?:\/\/[^\s]+)/g,
-    '<a class="message-link" href="$1" target="_blank">$1</a>'
-  );
+  if ( typeof str === "string") {
+    return str.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a class="message-link" href="$1" target="_blank">$1</a>'
+    );
+  }
 }
 
 function chatroom_strip_slashes(str) {
@@ -126,11 +126,19 @@ function sendChatMessage() {
     method: "POST",
     body: data,
   })
-    .then((response) => {
-      return response.json();
-    })
+  .then(response => response.json())
     .then((responseJson) => {
-      chatroom_check_updates();
+
+      console.log(responseJson);
+
+      if ( false === responseJson.success) {
+        chatroom_get_chat_message_html(responseJson.data);
+      }
+
+      if ( true === responseJson.success) {
+        chatroom_check_updates();
+      }
+
     });
 }
 

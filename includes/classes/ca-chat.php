@@ -147,7 +147,6 @@ class CA_Chat {
 
 		$post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
 
-		$post_id      = filter_input( INPUT_POST, 'post_id', FILTER_SANITIZE_NUMBER_INT );
 		$post         = get_post( $post_id );
 		$user_id      = absint( get_current_user_id() );
 		$log_filename = $this->get_log_filename( $post_id );
@@ -201,9 +200,45 @@ class CA_Chat {
 		$post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
 		$message = isset( $_POST['message'] ) ? sanitize_text_field( wp_unslash( $_POST['message'] ) ) : '';
 
-		if ( $post_id && $message ) {
-			$this->save_message( $post_id, get_current_user_id(), $message );
+		// It's getting the post object.
+		$post = get_post( $post_id );
+
+		// Get post author display name.
+		$user = get_user_by( 'id', $post->post_author );
+
+		// Check if post type status is publish.
+		if ( 'publish' !== $post->post_status ) {
+			// Send non published post message.
+			$this->send_non_published_post_message( $user, $post );
 		}
+
+		if ( 'publish' === $post->post_status ) {
+			if ( $post_id && $message ) {
+				$this->save_message( $post_id, get_current_user_id(), $message );
+			}
+		}
+	}
+
+	/**
+	 * It sends non published post message
+	 *
+	 * @param object $user The user object.
+	 * @param object $post The post object.
+	 */
+	public function send_non_published_post_message( $user, $post ) {
+		$messages = array(
+			'id'             => 0,
+			'time'           => time(),
+			'is_post_author' => true,
+			'sender'         => absint( $post->post_author ),
+			'lesson_author'  => absint( $post->post_author ),
+			'contents'       => 'El chat aún no está disponible, por favor intenta mas tarde.',
+			'message_time'   => $this->get_current_time(),
+			'author_avatar'  => crypto_academy_get_user_avatar_html( $post->post_author, 40 ),
+			'author_name'    => $user->display_name,
+		);
+
+		wp_send_json_error( $messages );
 	}
 
 	/**
@@ -269,8 +304,7 @@ class CA_Chat {
 		$this->write_log_file( $log_filename, wp_json_encode( $messages ) );
 
 		$messages = array_values( $messages );
-		echo wp_json_encode( $messages );
-		die;
+		wp_send_json_success( $messages );
 	}
 
 	// Get current time.
