@@ -317,28 +317,31 @@ class CA_Chat {
 		if ( 'streaming' !== $post->post_type ) {
 			return false;
 		}
-		?>
-		<!-- <div class="chat-container">
-		</div>
-		<textarea class="chat-text-entry"></textarea> -->
 
-		<div class="chat-wrapper" id="chat_container">
-		<h2 class="chat-title row align-items-center"><?php echo crypto_academy_get_icon_svg( 'ui', 'ca-chat', 18 ); ?>&nbspCHAT EN VIVO</h2>
-			<div class="chat" id="chat">
-				<div class="chat-content chat-container" id="chat_content"></div>
-				<form class="chat-form" id="chat_form">
-					<textarea class="chat-text-entry" name="chat_message" id="chat_message" placeholder="Escribe tus comentarios..." cols="30" rows="1"></textarea>
-				<?php
-				if ( function_exists( 'crypto_academy_get_user_avatar_html' ) ) {
-					echo crypto_academy_get_user_avatar_html( get_current_user_id(), 40 );
-				}
-				?>
-					<button id="submit_message" class="submit-message" type="submit" area-label="Enviar el mensaje"><?php echo crypto_academy_get_icon_svg( 'ui', 'ca-send', 40 ); ?></button>
-				</form>
-			</div>
-			<!-- <span class="hide-chat" id="hide_chat"><span class="arrow">&lsaquo;</span>Ocultar chat</span> -->
-		</div>
-		<?php
+		$user_avatar   = function_exists( 'crypto_academy_get_user_avatar_html' ) ? crypto_academy_get_user_avatar_html( get_current_user_id(), 40 ) : '';
+		$chat_icon_svg = function_exists( 'crypto_academy_get_icon_svg' ) ? crypto_academy_get_icon_svg( 'ui', 'ca-chat', 18 ) : '';
+		$send_icon_svg = function_exists( 'crypto_academy_get_icon_svg' ) ? crypto_academy_get_icon_svg( 'ui', 'ca-send', 40 ) : '';
+
+		printf(
+			'<div class="chat-wrapper" id="chat_container">
+				<h2 class="chat-title row align-items-center">%s&nbspCHAT EN VIVO</h2>
+				<div class="chat" id="chat">
+					<div class="chat-content chat-container" id="chat_content"></div>
+					<form class="chat-form" id="chat_form">
+						<textarea class="chat-text-entry" name="chat_message" id="chat_message" placeholder="%s" cols="30" rows="1"></textarea>
+						%s
+						<button id="submit_message" class="submit-message" type="submit" area-label="%s">%s</button>
+					</form>
+				</div>
+			<!-- <span class="hide-chat" id="hide_chat"><span class="arrow">&lsaquo;</span>%s</span> -->
+			</div>',
+			$chat_icon_svg, // phpcs:ignore
+			esc_html__( 'Escribe tu mensaje aquí...', 'crypto-academy' ),
+			$user_avatar, // phpcs:ignore
+			esc_html__( 'Enviar el mensaje', 'crypto-academy' ),
+			$send_icon_svg, // phpcs:ignore
+			esc_html__( 'Enviar el mensaje', 'crypto-academy' )
+		);
 	}
 
 	/**
