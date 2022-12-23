@@ -15,29 +15,11 @@ class CA_Chat {
 	 * file, defines the javascript variables, and sets up the ajax handlers.
 	 */
 	public function __construct() {
-		register_activation_hook( __FILE__, array( $this, 'activation_hook' ) );
-		register_deactivation_hook( __FILE__, array( $this, 'deactivation_hook' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-		add_action( 'save_post', array( $this, 'maybe_create_chatroom_log_file' ), 10, 2 );
 		add_action( 'wp_ajax_check_updates', array( $this, 'ajax_check_updates_handler' ) );
 		add_action( 'wp_ajax_send_message', array( $this, 'ajax_send_message_handler' ) );
 	}
 
-	// public function get_plugin_file_na
-
-	/**
-	 * `flush_rewrite_rules()` is a WordPress function that refreshes the rewrite rules
-	 */
-	public function activation_hook() {
-		flush_rewrite_rules();
-	}
-
-	/**
-	 * `flush_rewrite_rules()` is a WordPress function that refreshes the rewrite rules
-	 */
-	public function deactivation_hook() {
-		flush_rewrite_rules();
-	}
 
 	/**
 	 * We're checking to see if the post type is a streaming post type. If it is, we're enqueuing the
@@ -75,16 +57,17 @@ class CA_Chat {
 		if ( empty( $post->post_type ) || 'streaming' !== $post->post_type ) {
 			return;
 		}
-		$upload_dir   = wp_upload_dir();
-		$log_filename = $upload_dir['basedir'] . '/chatter/' . $post_id . '-' . $this->get_current_date() . '.json';
+
+		$dir          = $this->get_chatter_folder_path();
+		$log_filename = $dir . $post_id . '-' . $this->get_current_date() . '.json';
 
 		if ( file_exists( $log_filename ) ) {
 			return;
 		}
 
 		// Create the chatter directory if it doesn't exist.
-		if ( ! file_exists( $upload_dir['basedir'] . '/chatter/' ) ) {
-			wp_mkdir_p( $upload_dir['basedir'] . '/chatter/' );
+		if ( ! file_exists( $dir ) ) {
+			wp_mkdir_p( $dir );
 		}
 
 		// Open and write to the file using the wp_filesystem API.
@@ -119,8 +102,8 @@ class CA_Chat {
 	 * @return string The log file name.
 	 */
 	public function get_log_filename( $post_id ) {
-		$upload_dir   = wp_upload_dir();
-		$log_filename = $upload_dir['basedir'] . '/chatter/' . $post_id . '-' . $this->get_current_date() . '.json';
+
+		$log_filename = $this->get_chatter_folder_path() . $post_id . '-' . $this->get_current_date() . '.json';
 
 		return $log_filename;
 	}
@@ -147,6 +130,7 @@ class CA_Chat {
 	 */
 	public function write_log_file( $log_filename, $contents ) {
 		$wp_filesystem = $this->get_wp_filesystem();
+
 		$wp_filesystem->put_contents( $log_filename, $contents, FS_CHMOD_FILE );
 	}
 
@@ -244,23 +228,29 @@ class CA_Chat {
 		$messages        = json_decode( $contents );
 		$last_message_id = 0; // Helps determine the new message's ID.
 
+		/* It's looping through the messages and removing any messages that are older than an hour. */
 		foreach ( $messages as $key => $message ) {
 			if ( time() - $message->time > 3600 ) {
 				$last_message_id = $message->id;
-				unset( $messages[ $key ] );
+				// unset( $messages[ $key ] );
 			} else {
 				break;
 			}
 		}
 
-		$messages = array_values( $messages );
+		/* It's getting the values of the messages array. */
+		$messages_values = array_values( $messages );
 
-		if ( ! empty( $messages ) ) {
-			$last_message_id = end( $messages )->id;
+		/* It's getting the last message ID. */
+		if ( ! empty( $messages_values ) ) {
+			$last_message_id = end( $messages_values )->id;
 		}
 
+		/* It's getting the last message ID and adding 1 to it. */
 		$new_message_id = $last_message_id + 1;
-		$post           = get_post( $post_id );
+
+		/* It's getting the post object. */
+		$post = get_post( $post_id );
 
 		$messages[] = array(
 			'id'             => $new_message_id,
@@ -273,24 +263,8 @@ class CA_Chat {
 			'author_avatar'  => crypto_academy_get_user_avatar_html( $user->ID, 40 ),
 			'author_name'    => $user->display_name,
 		);
-		// $this->write_log_file( $log_filename, wp_json_encode( $messages ) );
 
-		// Save the message in the daily log.
-		$log_filename = $this->get_log_filename( $post_id, $this->get_current_date() );
-		$contents     = $this->parse_messages_log_file( $log_filename );
-		$messages     = json_decode( $contents );
-
-		$messages[] = array(
-			'id'             => $new_message_id,
-			'time'           => time(),
-			'is_post_author' => absint( $post->post_author ) === $user_id ? true : false,
-			'sender'         => $user_id,
-			'lesson_author'  => absint( $post->post_author ),
-			'contents'       => $content,
-			'message_time'   => $this->get_current_time(),
-			'author_avatar'  => crypto_academy_get_user_avatar_html( $user->ID, 40 ),
-			'author_name'    => $user->display_name,
-		);
+		$this->maybe_create_chatroom_log_file( $post_id, $post );
 
 		$this->write_log_file( $log_filename, wp_json_encode( $messages ) );
 
@@ -367,4 +341,14 @@ class CA_Chat {
 		<?php
 	}
 
+	/**
+	 * It gets the chatter folder path
+	 *
+	 * @return string $dir The chatter folder path.
+	 */
+	public function get_chatter_folder_path() {
+		$upload_dir = wp_upload_dir();
+		$dir        = $upload_dir['basedir'] . '/chatter/';
+		return $dir;
+	}
 }
