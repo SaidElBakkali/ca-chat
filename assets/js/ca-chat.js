@@ -15,11 +15,11 @@ function chatroom_check_updates() {
         // check if the response is an array
         if (Array.isArray(responseJson.data)) {
           // loop through the array
-        for (const chat of responseJson.data) {
-          chatroom_get_chat_message_html(chat);
+          for (const chat of responseJson.data) {
+            chatroom_get_chat_message_html(chat);
+          }
         }
       }
-    }
     });
 }
 
@@ -49,7 +49,7 @@ function chatroom_get_chat_message_html(chat) {
   /* This is checking if the message is private and if it is not, it is checking if the message container is null.
   If it is null, it is adding the message to the chat content and scrolling to the bottom of the chat content. */
   if (chat.is_private) {
-    if( null !== last_message ) {
+    if (null !== last_message) {
       if (!last_message.classList.contains("chat-message-0")) {
         chat_content.innerHTML += message;
 
@@ -118,14 +118,14 @@ function sendChatMessage(cahtForm) {
   })
     .then((response) => response.json())
     .then((responseJson) => {
-      if (0 === responseJson.data.id ) {
+      if (0 === responseJson.data.id) {
         chatroom_get_chat_message_html(responseJson.data);
       }
 
       if (true === responseJson.success) {
-          // check if the response is an array
-          if (Array.isArray(responseJson.data)) {
-            // loop through the array
+        // check if the response is an array
+        if (Array.isArray(responseJson.data)) {
+          // loop through the array
           for (const chat of responseJson.data) {
             chatroom_get_chat_message_html(chat);
           }
@@ -135,7 +135,7 @@ function sendChatMessage(cahtForm) {
     });
 }
 
-( () => {
+(() => {
   const chatForm = document.querySelector("#chat_form");
   chatForm.addEventListener("submit", function (e) {
     console.log("submit");
@@ -143,16 +143,14 @@ function sendChatMessage(cahtForm) {
     sendChatMessage(chatForm);
   });
 
-  // Listen for the user to press enter in the textbox and send the message
-  document
-    .querySelector("textarea.chat-text-entry")
-    .addEventListener("keypress", function (event) {
-      if (event.charCode == 13 || event.keyCode == 13) {
-        sendChatMessage(chatForm);
-        return false;
-      }
-    });
+  // Send form when enter is pressed
+  chatForm.addEventListener("keypress", function (e) {
+    if (e.keyCode === 13) {
+      e.preventDefault();
+      sendChatMessage(chatForm);
+    }
+  });
 
-    setInterval(chatroom_check_updates, 5000);
-
+  // Check for updates every 5 seconds
+  setInterval(chatroom_check_updates, 5000);
 })();
