@@ -12,10 +12,14 @@ function chatroom_check_updates() {
     .then((response) => response.json())
     .then((responseJson) => {
       if (responseJson !== null) {
-        for (const chat of responseJson) {
+        // check if the response is an array
+        if (Array.isArray(responseJson.data)) {
+          // loop through the array
+        for (const chat of responseJson.data) {
           chatroom_get_chat_message_html(chat);
         }
       }
+    }
     });
 }
 
@@ -45,7 +49,13 @@ function chatroom_get_chat_message_html(chat) {
   /* This is checking if the message is private and if it is not, it is checking if the message container is null.
   If it is null, it is adding the message to the chat content and scrolling to the bottom of the chat content. */
   if (chat.is_private) {
-    if (!last_message.classList.contains("chat-message-0")) {
+    if( null !== last_message ) {
+      if (!last_message.classList.contains("chat-message-0")) {
+        chat_content.innerHTML += message;
+
+        chat_content.scrollTop = chat_content.scrollHeight;
+      }
+    } else {
       chat_content.innerHTML += message;
 
       chat_content.scrollTop = chat_content.scrollHeight;
@@ -108,12 +118,18 @@ function sendChatMessage(cahtForm) {
   })
     .then((response) => response.json())
     .then((responseJson) => {
-      if (false === responseJson.success) {
+      if (0 === responseJson.data.id ) {
         chatroom_get_chat_message_html(responseJson.data);
       }
 
       if (true === responseJson.success) {
-        chatroom_check_updates();
+          // check if the response is an array
+          if (Array.isArray(responseJson.data)) {
+            // loop through the array
+          for (const chat of responseJson.data) {
+            chatroom_get_chat_message_html(chat);
+          }
+        }
       }
       cahtForm.reset();
     });
@@ -122,6 +138,7 @@ function sendChatMessage(cahtForm) {
 ( () => {
   const chatForm = document.querySelector("#chat_form");
   chatForm.addEventListener("submit", function (e) {
+    console.log("submit");
     e.preventDefault();
     sendChatMessage(chatForm);
   });

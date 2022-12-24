@@ -178,8 +178,7 @@ class CA_Chat {
 			}
 
 			$messages = array_values( $messages );
-			echo wp_json_encode( $messages );
-			die;
+			wp_send_json_success( $messages );
 		}
 	}
 
