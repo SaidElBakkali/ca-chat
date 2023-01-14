@@ -4,7 +4,7 @@
  * Plugin URI: https://saidelbakkali.com/
  * Description: Chat for Crypto Master Platform
  * Author: Said El Bakkali
- * Version: 0.0.3
+ * Version: 0.1.0
  * Author URI: https://saidelbakkali.com/
  * License: GPLv2 or later
  * Text Domain: ca-chat
@@ -13,7 +13,7 @@
  * @package CA Chat
  */
 
-define( 'CA_CHAT_VERSION', '0.0.3' );
+define( 'CA_CHAT_VERSION', '0.1.0' );
 define( 'CA_CHAT__MINIMUM_WP_VERSION', '5.5' );
 define( 'CA_CHAT__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CA_CHAT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
