@@ -30,12 +30,14 @@ class CA_Chat {
 		global $post;
 
 		if ( isset( $post->post_type ) && 'streaming' === $post->post_type ) {
-			wp_enqueue_script( 'jquery' );
-			wp_enqueue_script( 'chat-room', CA_CHAT_PLUGIN_URL . 'assets/js/ca-chat.js', array(), CA_CHAT_VERSION, true );
-			wp_enqueue_style( 'chat-room-styles', CA_CHAT_PLUGIN_URL . 'assets/css/ca-chat.css', array(), CA_CHAT_VERSION );
+			wp_enqueue_script( 'ca-chat', CA_CHAT_PLUGIN_URL . 'assets/frontend/js/ca-chat.js', array(), CA_CHAT_VERSION, true );
+			wp_enqueue_style( 'ca-chat', CA_CHAT_PLUGIN_URL . 'assets/frontend/css/style.css', array(), CA_CHAT_VERSION );
+
+			// Add RTL support.
+			wp_style_add_data( 'ca-chat', 'rtl', 'replace' );
 
 			wp_localize_script(
-				'chat-room',
+				'ca-chat',
 				'caChat',
 				array(
 					'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
@@ -147,39 +149,7 @@ class CA_Chat {
 
 		$post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
 
-		$post         = get_post( $post_id );
-		$user_id      = absint( get_current_user_id() );
-		$log_filename = $this->get_log_filename( $post_id );
-		$contents     = $this->parse_messages_log_file( $log_filename );
-		$messages     = json_decode( $contents, true );
-
-		if ( is_array( $messages ) && ! empty( $messages ) ) {
-
-			foreach ( $messages as $key => $message ) {
-
-				$hide_message = true;
-				$is_sender    = $user_id === $message['sender'] ? true : false;
-
-				if ( $is_sender ) {
-					$hide_message = false;
-				}
-
-				if ( absint( $post->post_author ) === $user_id ) {
-					$hide_message = false;
-				}
-
-				if ( $message['is_post_author'] ) {
-					$hide_message = false;
-				}
-
-				if ( true === $hide_message ) {
-					unset( $messages[ $key ] );
-				}
-			}
-
-			$messages = array_values( $messages );
-			wp_send_json_success( $messages );
-		}
+		$this->send_messages( $post_id, get_current_user_id() );
 	}
 
 	/**
@@ -214,6 +184,7 @@ class CA_Chat {
 		if ( 'publish' === $post->post_status ) {
 			if ( $post_id && $message ) {
 				$this->save_message( $post_id, get_current_user_id(), $message );
+				$this->send_messages( $post_id, get_current_user_id() );
 			}
 		}
 	}
@@ -263,16 +234,6 @@ class CA_Chat {
 		$messages        = json_decode( $contents );
 		$last_message_id = 0; // Helps determine the new message's ID.
 
-		/* It's looping through the messages and removing any messages that are older than an hour. */
-		foreach ( $messages as $key => $message ) {
-			if ( time() - $message->time > 3600 ) {
-				$last_message_id = $message->id;
-				// unset( $messages[ $key ] );
-			} else {
-				break;
-			}
-		}
-
 		/* It's getting the values of the messages array. */
 		$messages_values = array_values( $messages );
 
@@ -290,8 +251,8 @@ class CA_Chat {
 		$messages[] = array(
 			'id'             => $new_message_id,
 			'time'           => time(),
-			'is_post_author' => absint( $post->post_author ) === $user_id ? true : false,
-			'sender'         => $user_id,
+			'is_post_author' => absint( $post->post_author ) === $user->ID ? true : false,
+			'sender'         => $user->ID,
 			'lesson_author'  => absint( $post->post_author ),
 			'contents'       => $content,
 			'message_time'   => $this->get_current_time(),
@@ -302,9 +263,61 @@ class CA_Chat {
 		$this->maybe_create_chatroom_log_file( $post_id, $post );
 
 		$this->write_log_file( $log_filename, wp_json_encode( $messages ) );
+	}
 
-		$messages = array_values( $messages );
-		wp_send_json_success( $messages );
+
+	// Send messages to the front end.
+	/**
+	 * It sends the messages to the front end
+	 *
+	 * @param int $post_id The ID of the post that the message is being sent to.
+	 */
+	public function send_messages( $post_id, $user_id ) {
+
+		$log_filename = $this->get_log_filename( $post_id );
+		$contents     = $this->parse_messages_log_file( $log_filename );
+		$messages     = json_decode( $contents, true );
+		$post         = get_post( $post_id );
+
+		/* It's looping through the messages and removing any messages that are older than an hour. */
+
+		if ( is_array( $messages ) ) {
+			foreach ( $messages as $key => $message ) {
+				if ( time() - $message->time > 3600 ) {
+					// unset( $messages[ $key ] );
+				} else {
+					// $messages[ $key ]->message_time = $this->get_current_time();
+				}
+			}
+		}
+
+		if ( is_array( $messages ) && ! empty( $messages ) ) {
+
+			foreach ( $messages as $key => $message ) {
+
+				$hide_message = true;
+				$is_sender    = $user_id === $message['sender'] ? true : false;
+
+				if ( $is_sender ) {
+					$hide_message = false;
+				}
+
+				if ( absint( $post->post_author ) === $user_id ) {
+					$hide_message = false;
+				}
+
+				if ( $message['is_post_author'] ) {
+					$hide_message = false;
+				}
+
+				if ( true === $hide_message ) {
+					unset( $messages[ $key ] );
+				}
+			}
+
+			$messages = array_values( $messages );
+			wp_send_json_success( $messages );
+		}
 	}
 
 	// Get current time.

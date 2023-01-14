@@ -1,0 +1,68 @@
+{
+    "localization": {
+        "dist": "./locales/ca-chat.pot"
+    },
+    "browserSync": {
+        "ssl": {
+            "key": "/home/said/Dev/ssl/certs/localhost/localhost.key",
+            "cert": "/home/said/Dev/ssl/certs/localhost/localhost.crt"
+        },
+        "proxy": {
+            "host": "https://crypto-academy.local"
+        }
+    },
+    "paths": {
+        "styles": {
+            "src": "./src/frontend/scss/style.scss",
+            "watch": "./src/frontend/scss/**/*.scss",
+            "dest": "./assets/frontend/css",
+            "vendor": {
+                "elements": [],
+                "base": "node_modules"
+            }
+        },
+        "scripts": {
+            "src": "./src/frontend/js/*.js",
+            "watch": "./src/frontend/js/**/*.js",
+            "dest": "./assets/frontend/js",
+            "vendor": {
+                "elements": [],
+                "base": "node_modules"
+            }
+        },
+        "php": {
+            "watch": [
+                "./**/*.php",
+                "!./includes/packages/**/*"
+            ]
+        },
+        "images": {
+            "src": "./src/frontend/images/**/*.{jpg,jpeg,png,gif,svg}",
+            "dest": "./assets/frontend/images"
+        },
+        "fonts": {
+            "src": "./src/frontend/fonts/**/*.{eot,svg,ttf,woff,woff2}",
+            "dest": "./assets/frontend/fonts"
+        },
+        "build": {
+            "src": [
+                "./**",
+                "!./node_modules{,/**}",
+                "!./src{,/**}",
+                "!./build{,/**}",
+                "!./releases{,/**}",
+                "!./assets{,/**/*.map}",
+                "!./locales{,/**/*.pot}",
+                "!./locales{,/**/*.po}",
+                "!./*.js",
+                "!./*.json",
+                "!./*.lock",
+                "!./*.build",
+                "!./*.xml",
+                "!./.*"
+            ],
+            "dest": "./build/",
+            "releases": "./releases/"
+        }
+    }
+}
