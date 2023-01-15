@@ -175,18 +175,33 @@ class CA_Chat {
 		// Get post author display name.
 		$user = get_user_by( 'id', $post->post_author );
 
-		// Check if post type status is publish.
-		if ( 'publish' !== $post->post_status ) {
+		// Check if the chat is enabled.
+		if ( false === $this->chat_is_enabled( $post ) ) {
 			// Send non published post message.
 			$this->send_non_published_post_message( $user, $post );
 		}
 
-		if ( 'publish' === $post->post_status ) {
+		if ( true === $this->chat_is_enabled( $post ) ) {
 			if ( $post_id && $message ) {
 				$this->save_message( $post_id, get_current_user_id(), $message );
 				$this->send_messages( $post_id, get_current_user_id() );
 			}
 		}
+	}
+
+	/**
+	 * `chat_is_enabled` checks if the chat is enabled for a given post
+	 *
+	 * @param object $post The ID of the post you want to check.
+	 */
+	public function chat_is_enabled( $post ) {
+		$ca_chat_enabled = 'yes' === get_post_meta( $post->ID, 'ca_chat_enabled', true ) ? 'yes' : 'no';
+
+		if ( 'publish' === $post->post_status && 'streaming' === $post->post_type && 'yes' === $ca_chat_enabled ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -283,7 +298,7 @@ class CA_Chat {
 
 		if ( is_array( $messages ) ) {
 			foreach ( $messages as $key => $message ) {
-				if ( time() - $message->time > 3600 ) {
+				if ( time() - $message['time'] > 3600 ) {
 					// unset( $messages[ $key ] );
 				} else {
 					// $messages[ $key ]->message_time = $this->get_current_time();

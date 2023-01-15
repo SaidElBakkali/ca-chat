@@ -1,6 +1,6 @@
 {
   "name": "ca-chat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A simple chat plugin for WordPress.",
   "exports": "./gulpfile.babel.js",
   "author": {
@@ -37,7 +37,7 @@
     "@wordpress/stylelint-config": "^21.7.0",
     "browser-sync": "^2.27.11",
     "del": "^7.0.0",
-    "eslint": "^8.31.0",
+    "eslint": "^8.32.0",
     "gulp": "^4.0.2",
     "gulp-autoprefixer": "^8.0.0",
     "gulp-babel": "^8.0.0",
