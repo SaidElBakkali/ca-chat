@@ -1,0 +1,35 @@
+{
+	"name": "quantika14/ca-chat",
+	"description": "A simple WP Chat plugin.",
+	"type": "wordpress-plugin",
+    "keywords": [
+        "WordPress",
+        "Plugin",
+        "rtl"
+      ],
+	"license": "GPLv2",
+	"authors": [
+		{
+			"name": "Said El Bakkali",
+			"email": "contact@saidelbakkali.com",
+            "homepage": "https://saidelbakkali.com",
+            "role": "Developer"
+		}
+	],
+	"config": {
+		"vendor-dir": "includes/packages"
+	},
+	"minimum-stability": "stable",
+	"require": {
+		"php": ">=5.6",
+		"cboden/ratchet": "^0.4.4"
+	},
+	"autoload": {
+		"psr-4": {},
+		"files": []
+	},
+	"support": {
+        "issues": "https://github.com/SaidElBakkali/ca-chat/issues",
+        "source": "https://github.com/SaidElBakkali/ca-chat"
+      }
+}

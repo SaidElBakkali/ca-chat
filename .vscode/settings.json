@@ -1,4 +1,5 @@
 {
-    //"phpSniffer.standard": "./phpcs.xml",
-    "intelephense.environment.includePaths": ["../../.."]
-  }
+  "phpcs.standard": "./phpcs.xml",
+  "intelephense.environment.includePaths": ["../../.."],
+  "php.workspace.includePath": "../../.."
+}

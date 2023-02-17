@@ -98,9 +98,13 @@ function chatroom_strip_slashes(str) {
   });
 }
 
-function sendChatMessage(cahtForm) {
+function sendChatMessage(chatForm) {
+
+  // Disable the submit button
+  chatForm.querySelector("#submit_message").disabled = true;
+
   // Create a FormData object
-  let data = new FormData(cahtForm);
+  let data = new FormData(chatForm);
 
   // Add the action to send a message
   data.append("action", "send_message");
@@ -131,15 +135,22 @@ function sendChatMessage(cahtForm) {
           }
         }
       }
-      cahtForm.reset();
+      chatForm.reset();
     });
+
+    // Enable the submit button
+    chatForm.querySelector("#submit_message").disabled = false;
 }
 
 (() => {
-  const chatForm = document.querySelector("#chat_form");
-  chatForm.addEventListener("submit", function (e) {
-    console.log("submit");
+    const chatForm = document.querySelector("#chat_form");
+    chatForm.addEventListener("submit", function (e) {
     e.preventDefault();
+    const cahatMessage = chatForm.querySelector("#chat_message").value;
+
+    if (cahatMessage === "") {
+      return;
+    }
     sendChatMessage(chatForm);
   });
 
@@ -147,10 +158,18 @@ function sendChatMessage(cahtForm) {
   chatForm.addEventListener("keypress", function (e) {
     if (e.keyCode === 13) {
       e.preventDefault();
+      const cahatMessage = chatForm.querySelector("#chat_message").value;
+
+      if (cahatMessage === "") {
+        return;
+      }
       sendChatMessage(chatForm);
     }
   });
 
+  // Check for updates every 5 seconds if the user is logged in else check every 10 seconds
+  const updatesTime = "1" === caChat.is_post_author ? 1000 : 5000;
+
   // Check for updates every 5 seconds
-  setInterval(chatroom_check_updates, 5000);
+  setInterval(chatroom_check_updates, updatesTime);
 })();
